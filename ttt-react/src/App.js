@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
@@ -9,7 +8,7 @@ class App extends Component {
       squares: Array(9).fill(null),
       xIsNext: true,
       winner: null,
-      winningLine: Array()
+      winningLine: []
     };
     this.lines = [
       [0, 1, 2],
@@ -26,15 +25,37 @@ class App extends Component {
   } //end of constructor
 
   handleClick(event) {
-    console.log(event.target.id);
+    let squares = this.state.squares;
+    squares[event.target.id] = (this.state.xIsNext) ? "X" : "O";
+    const theWinner = this.calculateWinner(squares);
+    //in React you have to use setState()
+    this.setState({
+      squares,   //property name == variable name, so can just put squares
+      xIsNext : !this.state.xIsNext,
+      winner : theWinner.player,
+      winningLine : theWinner.winningLine
+    });
+  }
+
+  calculateWinner(squares) {
+    for (let i = 0; i < this.lines.length; i++) {
+      const [a, b, c] = this.lines[i];
+      if (squares[a] &&
+        squares[a] === squares[b] &&
+        squares[a] === squares[c]) {
+        return { player: squares[a], winningLine: this.lines[i] };
+      }
+    }
+    return { player: null, winningLine: [] };
   }
 
   renderSquare(i) {
     const className = (this.state.squares[i] == null) ? "square" :
-      (this.state.winner != null && this.state.winner === this.state.squares[i]) ?
+      (this.state.winner != null && this.state.winner === this.state.squares[i] &&
+      this.state.winningLine.includes(i)) ?
         "square-winner" : "square-full";
     const enabled = (this.state.winner == null && this.state.squares[i] == null) ? true : false;
-    const eventHandler = (enabled) ? this.handleClick: "";
+    const eventHandler = (enabled) ? this.handleClick : () => { };
     //changed output from template literals to JSX
     // `${var}` becomes {var}
     const output =
